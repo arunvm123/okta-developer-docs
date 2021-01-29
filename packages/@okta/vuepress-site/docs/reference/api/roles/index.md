@@ -14,11 +14,64 @@ The Okta Administrator Roles API provides operations to manage administrative ro
 
 Explore the Administrator Roles API:  [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/4f1233beeef282acbcfb)
 
+## Role operations
+<ApiLifecycle access="beta" />
+
+### Create role
+<ApiOperation method="post" url="/api/v1/iam/roles" />
+
+Creates a new role with a custom set of permissions
+
+##### Request parameters
+
+| Parameter   | Description                          | Param Type   | DataType                    | Required |
+| :---------- | :----------------------------------- | :----------- | :-------------------------- | :------- |
+| label       | name given to new role               | Body         | String                      | TRUE     |
+| description | description of the new role          | Body         | String                      | TRUE     |
+| permissions | the permissions the new role grants  | Body         | Array of [Permission types](#permission-types)   | TRUE     |
+
+##### Response parameters
+
+Create [Role](#custom-role-object)
+
+##### Request example
+
+```bash
+curl -v -X POST \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+-d '{
+      "label": "UserCreator",
+      "description": "...",
+      "permissions" [
+        "okta.users.create",
+        "okta.users.read",
+        "okta.groups.read",
+        "okta.users.profile.manage"
+      ]
+    }' "https://${yourOktaDomain}/api/v1/iam/roles"
+```
+
+###### Response example
+
+```json
+{
+  "id": "cr0Yq6IJxGIr0ouum0g3",
+  "label": "UserCreator",
+  "description": "Create users",
+  "permissions": [
+    "okta.users.create",
+    "okta.users.read",
+    "okta.groups.read",
+    "okta.users.profile.manage"
+  ]
+}
+```
+
 ## Role assignment operations
 
 ### Grant third-party admin status
-<ApiLifecycle access="ea" />
-
 <ApiOperation method="post" url="/api/v1/users/${userId}/roles?disableNotifications=true" />
 
 You can grant third-party admin status when you are adding a new admin using the API. You can do this by using an optional query parameter on the Administrator Roles API called `disableNotifications`.
@@ -1345,7 +1398,7 @@ Refer to the [product documentation](https://help.okta.com/en/prod/okta_help_CSH
 | :---------------------------- | :---------------------------------- | :------------------------------------ |
 | `API_ACCESS_MANAGEMENT_ADMIN` | API Access Management Administrator |                                       |
 | `APP_ADMIN`                   | Application Administrator           | Apps                                  |
-| `GROUP_MEMBERSHIP_ADMIN` <ApiLifecycle access="ea" /> | Group Membership Administrator | [Groups](/docs/reference/api/groups/)|
+| `GROUP_MEMBERSHIP_ADMIN`      | Group Membership Administrator      | [Groups](/docs/reference/api/groups/) |
 | `HELP_DESK_ADMIN`             | Help Desk Administrator             | [Groups](/docs/reference/api/groups/) |
 | `MOBILE_ADMIN`                | Mobile Administrator                |                                       |
 | `ORG_ADMIN`                   | Organizational Administrator        |                                       |
@@ -1362,5 +1415,53 @@ A Role could either be assigned to the User directly or be assigned to a Group o
 
 | Assignment type     | Description                                                        |
 | :------------------ | :----------------------------------------------------------------- |
-| `GROUP`             | Role was assigned to an admin Group of which the User is a member |
+| `GROUP`             | Role was assigned to an admin Group of which the User is a member  |
 | `USER`              | Role was assigned to the User directly                             |
+
+## Custom role object
+A custom role is a custom set of [permissions](#permission-types). A custom role is uniquely identified within your org by its id or label.
+
+### Custom role properties
+| Property         | Description                         | DataType                                       | Nullable   | Unique   | Read Only |
+| :--------------- | :---------------------------------- | :--------------------------------------------- | :--------- | :------- | :-------- |
+| id               | Unique key for the role             | String                                         | FALSE      | TRUE     | TRUE      |
+| label            | Display name of Role                | String                                         | FALSE      | TRUE     | FALSE     |
+| permissions      | the permissions the new role grants | Array of [Permission types](#permission-types) | FALSE      | FALSE    | FALSE     |
+
+### Examples
+
+```json
+{
+    "id": "cr0Yq6IJxGIr0ouum0g3",
+    "label": "UserCreator",
+    "description": "Create users",
+    "permissions": [
+      "okta.users.create",
+      "okta.users.read",
+      "okta.groups.read",
+      "okta.users.profile.manage"
+    ]
+}
+```
+#### Permission types
+<ApiLifecycle access="beta" />
+
+Permissions can be used to build custom roles. Permissions to manage a resource also grant the viewing privileges for the the same resource so you won't need to assign them separately.
+
+User permissions are all only effective with respect to the group(s) to which the admin is granted role via the resource set assignments.
+
+| Assignment type                     | Description                                                                                                                         |
+| :---------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `okta.users.manage`                 | Allows the admin to create and manage users and read all profile and credential information for users                               |
+| `okta.users.create`                 | Allows the admin to create users. If admin also scoped to manage a group, can add the user to the group on creation and then manage |
+| `okta.users.read`                   | Allows the admin to read any user's profile and credential information                                                              |
+| `okta.users.credentials.manage`     | Allows the admin to manage only credential lifecycle operations for a user                                                          |
+| `okta.users.userprofile.manage`     | Allows the admin to only do operations on the User Object, including hidden and sensitive attributes                                |
+| `okta.users.lifecycle.manage`       | Allows the admin to only take any user lifecycle operations                                                                         |
+| `okta.users.groupMembership.manage` | Allows the admin to manage a user's group membership (also need `okta.groups.members.manage` to assign to a specific group)         |
+| `okta.groups.manage`                | Allows the admin to fully manage groups in your Okta organization                                                                   |
+| `okta.groups.create`                | Allows the admin to create groups                                                                                                   |
+| `okta.groups.members.manage`        | Allows the admin to only take member operations in a group in your Okta org                                                         |
+| `okta.groups.read`                  | Allows the admin to only read information about groups and their members in your Okta organization                                  |
+
+
