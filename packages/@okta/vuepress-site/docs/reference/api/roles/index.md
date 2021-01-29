@@ -22,19 +22,19 @@ Explore the Administrator Roles API:  [![Run in Postman](https://run.pstmn.io/bu
 
 Creates a new role with a custom set of permissions
 
-##### Request parameters
+#### Request parameters
 
 | Parameter   | Description                          | Param Type   | DataType                    | Required |
-| :---------- | :----------------------------------- | :----------- | :-------------------------- | :------- |
-| label       | name given to new role               | Body         | String                      | TRUE     |
-| description | description of the new role          | Body         | String                      | TRUE     |
+| :---------- | :----------------------------------- | :----------- | :----------------------------------------------- | :------- |
+| label       | name given to new role               | Body         | String                                           | TRUE     |
+| description | description of the new role          | Body         | String                                           | TRUE     |
 | permissions | the permissions the new role grants  | Body         | Array of [Permission types](#permission-types)   | TRUE     |
 
-##### Response parameters
+#### Response parameters
 
-Create [Role](#custom-role-object)
+Created custom [Role](#custom-role-object)
 
-##### Request example
+#### Request example
 
 ```bash
 curl -v -X POST \
@@ -53,7 +53,48 @@ curl -v -X POST \
     }' "https://${yourOktaDomain}/api/v1/iam/roles"
 ```
 
-###### Response example
+##### Response example
+
+```json
+{
+  "id": "cr0Yq6IJxGIr0ouum0g3",
+  "label": "UserCreator",
+  "description": "Create users",
+  "permissions": [
+    "okta.users.create",
+    "okta.users.read",
+    "okta.groups.read",
+    "okta.users.profile.manage"
+  ]
+}
+```
+
+### Get role
+<ApiOperation method="get" url="/api/v1/iam/roles/${roleIdOrName}" />
+
+Get a custom role by its id or label
+
+#### Request parameters
+
+| Parameter    | Description                          | Param Type   | DataType                    | Required |
+| :----------- | :----------------------------------- | :----------- | :----------------------------------------------- | :------- |
+| roleIdOrName | id or label of the role              | URL          | String                                           | TRUE     |
+
+#### Response parameters
+
+Requested custom [Role](#custom-role-object)
+
+#### Request example
+
+```bash
+curl -v -X GET \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${yourOktaDomain}/api/v1/iam/roles/UserCreator"
+```
+
+##### Response example
 
 ```json
 {
