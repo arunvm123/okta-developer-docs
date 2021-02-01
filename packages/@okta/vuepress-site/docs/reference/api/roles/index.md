@@ -14,8 +14,9 @@ The Okta Administrator Roles API provides operations to manage administrative ro
 
 Explore the Administrator Roles API:  [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/4f1233beeef282acbcfb)
 
-## Role operations
+## Custom role operations
 <ApiLifecycle access="beta" />
+These operations allow the creation and manipulation of custom roles as custom collections of [permissions](#permission-types).
 
 ### Create role
 <ApiOperation method="post" url="/api/v1/iam/roles" />
@@ -32,7 +33,7 @@ Creates a new role with a custom set of permissions
 
 #### Response parameters
 
-Created custom [Role](#custom-role-object)
+Created custom [role](#custom-role-object)
 
 #### Request example
 
@@ -53,7 +54,7 @@ curl -v -X POST \
     }' "https://${yourOktaDomain}/api/v1/iam/roles"
 ```
 
-##### Response example
+#### Response example
 
 ```json
 {
@@ -94,7 +95,7 @@ curl -v -X GET \
 "https://${yourOktaDomain}/api/v1/iam/roles/UserCreator"
 ```
 
-##### Response example
+#### Response example
 
 ```json
 {
@@ -107,6 +108,212 @@ curl -v -X GET \
     "okta.groups.read",
     "okta.users.profile.manage"
   ]
+}
+```
+
+### List permissions
+<ApiOperation method="get" url="/api/v1/iam/roles/${roleIdOrName}/permissions" />
+
+Get the list of permissions included in a custom role identified by its id or label
+
+#### Request parameters
+
+| Parameter    | Description                          | Param Type   | DataType                    | Required |
+| :----------- | :----------------------------------- | :----------- | :----------------------------------------------- | :------- |
+| roleIdOrName | id or label of the role              | URL          | String                                           | TRUE     |
+
+#### Response parameters
+
+An array of [Permission types](#permission-types) which make the role identified by `${roleIdOrName}` and a link to that role
+
+#### Request example
+
+```bash
+curl -v -X GET \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${yourOktaDomain}/api/v1/iam/roles/cr0Yq6IJxGIr0ouum0g3/permissions"
+```
+
+#### Response example
+
+```json
+{
+  "permissions": [
+    "okta.users.create",
+    "okta.users.read",
+    "okta.groups.read",
+    "okta.users.profile.manage"
+  ],
+  "_links": {
+    "role": {
+      "href": "https://${yourOktaDomain}/api/v1/iam/roles/cr0Yq6IJxGIr0ouum0g3"
+    }
+  }
+}
+```
+
+### Add permission
+<ApiOperation method="post" url="/api/v1/iam/roles/${roleIdOrName}/permissions/${permissionType}" />
+
+Add a new permission to an existing role
+
+#### Request parameters
+
+| Parameter      | Description                          | Param Type   | DataType                              | Required |
+| :------------- | :----------------------------------- | :----------- | :------------------------------------ | :------- |
+| roleIdOrName   | id or label of the role              | URL          | String                                | TRUE     |
+| permissionType | permission to add to the role        | URL          | [Permission type](#permission-types)) | TRUE     |
+
+#### Response parameters
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+#### Request example
+
+```bash
+curl -v -X POST \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${yourOktaDomain}/api/v1/iam/roles/cr0Yq6IJxGIr0ouum0g3/permissions/okta.users.manage"
+```
+
+#### Response example
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+### Delete permission
+<ApiOperation method="delete" url="/api/v1/iam/roles/${roleIdOrName}/permissions/${permissionType}" />
+
+Deletes a permission from an existing role
+
+#### Request parameters
+
+| Parameter      | Description                          | Param Type   | DataType                              | Required |
+| :------------- | :----------------------------------- | :----------- | :------------------------------------ | :------- |
+| roleIdOrName   | id or label of the role              | URL          | String                                | TRUE     |
+| permissionType | permission to remove from the role   | URL          | [Permission type](#permission-types)) | TRUE     |
+
+#### Response parameters
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+#### Request example
+
+```bash
+curl -v -X DELETE \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${yourOktaDomain}/api/v1/iam/roles/cr0Yq6IJxGIr0ouum0g3/permissions/okta.users.manage"
+```
+
+#### Response example
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+### Delete role
+<ApiOperation method="delete" url="/api/v1/iam/roles/${roleIdOrName}" />
+
+Deletes a custom role
+
+#### Request parameters
+
+| Parameter      | Description                          | Param Type   | DataType                              | Required |
+| :------------- | :----------------------------------- | :----------- | :------------------------------------ | :------- |
+| roleIdOrName   | id or label of the role              | URL          | String                                | TRUE     |
+
+#### Response parameters
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+#### Request example
+
+```bash
+curl -v -X DELETE \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+"https://${yourOktaDomain}/api/v1/iam/roles/UserCreator"
+```
+
+#### Response example
+
+``` http
+HTTP/1.1 204 No Content
+```
+
+## Resource-set operations
+<ApiLifecycle access="beta" />
+These operations allow the creation and manipulation of resource sets as custom collections of resources. Resource-sets are used to assign [custom roles](#custom-role-operations) to administrators.
+
+### Create resource set
+<ApiOperation method="post" url="/api/v1/iam/resource-sets" />
+
+Creates a new resource set with a custom set of resources
+
+#### Request parameters
+
+| Parameter   | Description                                                                    | Param Type   | DataType     | Required |
+| :---------- | :----------------------------------------------------------------------------- | :----------- | :----------- | :------- |
+| label       | Unique name given to new resource set                                          | Body         | String       | TRUE     |
+| description | description of the new resource set                                            | Body         | String       | TRUE     |
+| resources   | the endpoints referencing the resources to be included in the new resource set | Body         | Array of URL | FALSE    |
+
+#### Response parameters
+
+Created [resource set](#resource-set-object)
+
+#### Request example
+
+```bash
+curl -v -X POST \
+-H "Accept: application/json" \
+-H "Content-Type: application/json" \
+-H "Authorization: SSWS ${api_token}" \
+-d '{
+      "label": "SF-IT-People",
+      "description": "People in the IT department of San Francisco",
+      "resources": [
+        "https://${yourOktaDomain}/api/v1/users/00uuk41Hjga5qGfQ30g3", // a user
+        "https://${yourOktaDomain}/api/v1/groups/00guaxWZ0AOa5NFAj0g3", // a group
+        "https://${yourOktaDomain}/api/v1/groups/00gu67DU2qNCjNZYO0g3/users", // users within a group
+        "https://${yourOktaDomain}/api/v1/users", // all users
+        "https://${yourOktaDomain}/api/v1/groups", // all groups
+      ]
+    }' "https://${yourOktaDomain}/api/v1/iam/resource-sets"
+```
+
+#### Response example
+
+```json
+{
+  "id": "iamoJDFKaJxGIr0oamd9g"
+  "label": "SF-IT-People",
+  "description": "People in the IT department of San Francisco",
+  "_links": {
+    "self": {
+      "href": "https://${yourOktaDomain}/api/v1/iam/resource-sets/iamoJDFKaJxGIr0oamd9g"
+    },
+    "resources": {
+      "href": "https://${yourOktaDomain}/api/v1/iam/resource-sets/iamoJDFKaJxGIr0oamd9g/resources"
+    },
+    "bindings": {
+      "href": "https://${yourOktaDomain}/api/v1/iam/resource-sets/iamoJDFKaJxGIr0oamd9g/bindings"
+    }
+  }
 }
 ```
 
@@ -1460,6 +1667,7 @@ A Role could either be assigned to the User directly or be assigned to a Group o
 | `USER`              | Role was assigned to the User directly                             |
 
 ## Custom role object
+<ApiLifecycle access="beta" />
 A custom role is a custom set of [permissions](#permission-types). A custom role is uniquely identified within your org by its id or label.
 
 ### Custom role properties
@@ -1469,7 +1677,7 @@ A custom role is a custom set of [permissions](#permission-types). A custom role
 | label            | Display name of Role                | String                                         | FALSE      | TRUE     | FALSE     |
 | permissions      | the permissions the new role grants | Array of [Permission types](#permission-types) | FALSE      | FALSE    | FALSE     |
 
-### Examples
+#### Example
 
 ```json
 {
@@ -1484,7 +1692,7 @@ A custom role is a custom set of [permissions](#permission-types). A custom role
     ]
 }
 ```
-#### Permission types
+### Permission types
 <ApiLifecycle access="beta" />
 
 Permissions can be used to build custom roles. Permissions to manage a resource also grant the viewing privileges for the the same resource so you won't need to assign them separately.
@@ -1505,4 +1713,19 @@ User permissions are all only effective with respect to the group(s) to which th
 | `okta.groups.members.manage`        | Allows the admin to only take member operations in a group in your Okta org                                                         |
 | `okta.groups.read`                  | Allows the admin to only read information about groups and their members in your Okta organization                                  |
 
+## Resource set object
+<ApiLifecycle access="beta" />
 
+A resource set is a collection of resources. Because there could be too many resources in a set, the object itself doesn't list the resources but provides a paginable link to fetch resources.
+
+| Property         | Description                                             | DataType                                                                                                      | Nullable   | Unique   | Read Only |
+| :--------------- | :------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------ | :--------- | :------- | :-------- |
+| id               | Unique key for the resource set                         | String                                                                                                        | FALSE      | TRUE     | TRUE      |
+| label            | Display name of the resource set                        | String                                                                                                        | FALSE      | TRUE     | FALSE     |
+| description      | A description of the resource set                       | String                                                                                                        | FALSE      | FALSE    | FALSE     |
+| _links           | Discoverable resources related to the resource set      | [JSON HAL](http://tools.ietf.org/html/draft-kelly-json-hal-06)                                                | TRUE       | FALSE    | FALSE     |
+
+The following `_links` are returned:
+* `self` gets this resource set
+* `resources` gets a paginable list of resources included in this set
+* `bindings` gets a paginable list of admin role bindings assigned to this set
